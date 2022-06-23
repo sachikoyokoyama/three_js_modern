@@ -51,7 +51,7 @@ gui.add(material, "metalness").min(0).max(1).step(0.001);
 gui.add(material, "roughness").min(0).max(1).step(0.001);
 
 // ジオメトリ　=> 一気にメッシュしちゃう
-const mesh1 = new THREE.Mesh(new THREE.TorusGeometry(1, 0.4, 16, 60), material);
+const mesh1 = new THREE.Mesh(new THREE.TorusGeometry(1, 0.4, 16, 60), material);// ドーナツ型
 const mesh2 = new THREE.Mesh(new THREE.OctahedronGeometry(), material);
 const mesh3 = new THREE.Mesh(
   new THREE.TorusKnotGeometry(0.8, 0.35, 100, 16), 
@@ -65,6 +65,9 @@ mesh1.position.set(2, 0, 0);
 mesh2.position.set(-1, 0, 0);
 mesh3.position.set(2, 0, -6);
 mesh4.position.set(5, 0, 3);
+
+// -> 上記meshたちを配列に。
+const meshes = [mesh1, mesh2, mesh3, mesh4];
 
 // ライトを追加（平行光源）-> デフォルトは上から光が当たる
 const directionalLight = new THREE.DirectionalLight("fff", 4);
@@ -87,16 +90,42 @@ window.addEventListener("resize", () => {
 
 });
 
+// ホイールを実装
+let speed = 0;
+let rotation = 0;
+window.addEventListener("wheel", (event) => {
+  // console.log('ホイールされました');
+  speed += event.deltaY * 0.0002; // eventの中にWheelというオブジェクトが入ってる
+  console.log(event.deltaY);
+  // ホイールを上に上げたのか、下げたのかdeltaYで調整できる
+})
+
+function rot() {
+  rotation += speed;
+  speed * 0.93;
+  mesh1.position.x = rotation;
+  window.requestAnimationFrame(rot);
+}
+rot();
+
 // animation
+const clock = new THREE.Clock();
 const animate = () => {
   renderer.render(scene, camera);
 
+  let getDelta = clock.getDelta(); //  フレーム単位を取得する
 
   // meshを回転させる
-  mesh1.rotation.x += 0.01; // x軸を基点にくるくる回る
-  mesh1.rotation.y += 0.01; // y軸を基点にくるくる回る、数字の部分で速度調整
+  // mesh1.rotation.x += 0.01; // x軸を基点にくるくる回る
+  // mesh1.rotation.y += 0.01; // y軸を基点にくるくる回る、数字の部分で速度調整
+  for (const mesh of meshes) {
+    mesh.rotation.x += 0.1 * getDelta;
+    mesh.rotation.y += 0.12 * getDelta;
+  }
+
 
   window.requestAnimationFrame(animate); //　マイフレームごとanimate()呼ぶ
+  // pcのスペックによって回転速度が変わったりする-> getDeltaをかけて調節？
 }
 
 animate();
